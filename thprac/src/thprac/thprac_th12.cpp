@@ -127,7 +127,6 @@ namespace TH12 {
             case 3:
                 SetFade(0.8f, 0.1f);
                 Close();
-                *mNavFocus = 0;
 
                 // Fill Param
                 thPracParam.mode = *mMode;
@@ -160,7 +159,6 @@ namespace TH12 {
                 break;
             case 4:
                 Close();
-                *mNavFocus = 0;
                 break;
             default:
                 break;
@@ -244,8 +242,6 @@ namespace TH12 {
 
             //ImGui::Text("Pos: %f, %f", ImGui::GetWindowPos().x, ImGui::GetWindowPos().y);
             //ImGui::Text("Size: %f, %f", ImGui::GetWindowSize().x, ImGui::GetWindowSize().y);
-
-            mNavFocus();
         }
         int CalcSection()
         {
@@ -350,11 +346,6 @@ namespace TH12 {
         Gui::GuiSlider<int, ImGuiDataType_S32> mPower { TH_POWER, 0, 400 };
         Gui::GuiDrag<int, ImGuiDataType_S32> mValue { TH_VALUE, 0, 999990, 10, 100000 };
         Gui::GuiDrag<int, ImGuiDataType_S32> mGraze { TH_GRAZE, 0, 999999, 1, 100000 };
-
-        Gui::GuiNavFocus mNavFocus { TH_STAGE, TH_MODE, TH_WARP,
-            TH_MID_STAGE, TH_END_STAGE, TH_NONSPELL, TH_SPELL, TH_PHASE, TH_CHAPTER,
-            TH_SCORE, TH_LIFE, TH_LIFE_FRAGMENT, TH_BOMB, TH_BOMB_FRAGMENT,
-            TH_POWER, TH_VALUE, TH_GRAZE, TH12_UFO_SIDE, TH12_VENTRA_1, TH12_VENTRA_2, TH12_VENTRA_3 };
 
         int mChapterSetup[7][2] {
             { 3, 2 },
@@ -572,33 +563,6 @@ namespace TH12 {
             th12_all_clear_bonus_2.Toggle(mOptCtx.all_clear_bonus);
             th12_all_clear_bonus_3.Toggle(mOptCtx.all_clear_bonus);
         }
-        void DatRecInit()
-        {
-            mOptCtx.data_rec_func = [&](std::vector<RecordedValue>& values) {
-                return DataRecFunc(values);
-            };
-            wchar_t tempStr[MAX_PATH];
-            GetCurrentDirectoryW(MAX_PATH, tempStr);
-            mOptCtx.data_rec_dir = tempStr;
-            mOptCtx.data_rec_dir += L"\\replay";
-        }
-        void DataRecPreUpd()
-        {
-            DataRecOpt(mOptCtx, true, thPracParam._playLock);
-        }
-        void DataRecFunc(std::vector<RecordedValue>& values)
-        {
-            values.clear();
-            values.emplace_back("Score", (int64_t)*(int32_t*)(0x4b0c44) * 10ll);
-            values.emplace_back("Graze", *(int32_t*)(0x4b0cdc));
-            values.emplace_back("Value", (float)(*(int32_t*)(0x4b0c78)) / 100.0f, "%.2f");
-        }
-        void DataRecMenu()
-        {
-            if (DataRecOpt(mOptCtx)) {
-                SetContentUpdFunc([&]() { ContentUpdate(); });
-            }
-        }
 
         THAdvOptWnd() noexcept
         {
@@ -609,13 +573,12 @@ namespace TH12 {
 
             InitUpdFunc([&]() { ContentUpdate(); },
                 [&]() { LocaleUpdate(); },
-                [&]() { PreUpdate(); },
+                [&]() { },
                 []() {});
 
             OnLocaleChange();
             FpsInit();
             GameplayInit();
-            DatRecInit();
         }
         SINGLETON(THAdvOptWnd);
 
@@ -678,20 +641,10 @@ namespace TH12 {
                     GameplaySet();
                 EndOptGroup();
             }
-            if (BeginOptGroup<TH_DATANLY>()) {
-                if (ImGui::Button(XSTR(TH_DATANLY_BUTTON))) {
-                    SetContentUpdFunc([&]() { DataRecMenu(); });
-                }
-                EndOptGroup();
-            }
 
             AboutOpt();
             ImGui::EndChild();
             ImGui::SetWindowFocus();
-        }
-        void PreUpdate()
-        {
-            DataRecPreUpd();
         }
 
         adv_opt_ctx mOptCtx;
@@ -1478,19 +1431,6 @@ namespace TH12 {
         );
 #endif
     }
-    void THDataInit()
-    {
-        AnlyDataInit();
-
-        DataRef<DATA_SCENE_ID>(U32_ARG(0x4cee40));
-        DataRef<DATA_RND_SEED>(U16_ARG(0x4ce568));
-        DataRef<DATA_DIFFCULTY>(U8_ARG(0x4b0ca8));
-        DataRef<DATA_SHOT_TYPE>(U8_ARG(0x4b0c90));
-        DataRef<DATA_SUB_SHOT_TYPE>(U8_ARG(0x4b0c94));
-        DataRef<DATA_STAGE>(U8_ARG(0x4b0cb0));
-        DataRef<DATA_STARTING_STAGE>(U8_ARG(0x4b0cb4));
-    }
-
     HOOKSET_DEFINE(THMainHook)
     EHOOK_DY(th12_everlasting_bgm, 0x454960)
     {
@@ -1632,7 +1572,6 @@ namespace TH12 {
 
         // Hooks
         THMainHook::singleton().EnableAllHooks();
-        THDataInit();
 
         // Reset thPracParam
         thPracParam.Reset();

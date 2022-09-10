@@ -151,7 +151,6 @@ namespace TH16 {
                 break;
             case 4:
                 Close();
-                *mNavFocus = 0;
                 break;
             default:
                 break;
@@ -239,8 +238,6 @@ namespace TH16 {
             //	ImGui::GetWindowPos().y / (float)renderSize.cy);
             //ImGui::Text("Size: %f, %f", ImGui::GetWindowSize().x / (float)renderSize.cx,
             //	ImGui::GetWindowSize().y / (float)renderSize.cy);
-
-            mNavFocus();
         }
         int CalcSection()
         {
@@ -340,11 +337,6 @@ namespace TH16 {
         Gui::GuiSlider<int, ImGuiDataType_S32> mPower { TH_POWER, 100, 400 };
         Gui::GuiDrag<int, ImGuiDataType_S32> mValue { TH_VALUE, 0, 999990, 10, 100000 };
         Gui::GuiDrag<int, ImGuiDataType_S32> mGraze { TH_GRAZE, 0, 999999, 1, 100000 };
-
-        Gui::GuiNavFocus mNavFocus { TH_STAGE, TH_MODE, TH_WARP, TH_DLG,
-            TH_MID_STAGE, TH_END_STAGE, TH_NONSPELL, TH_SPELL, TH_PHASE, TH_CHAPTER,
-            TH_SCORE, TH_LIFE, TH_BOMB, TH_BOMB_FRAGMENT, TH16_SEASON_GAUGE,
-            TH_POWER, TH_VALUE, TH_GRAZE };
 
         int mChapterSetup[7][2] {
             { 2, 2 },
@@ -539,7 +531,6 @@ namespace TH16 {
             case 3:
                 SetFade(0.8f, 0.1f);
                 Close();
-                *mNavFocus = 0;
 
                 // Fill Param
                 thPracParam.mode = 2;
@@ -554,7 +545,6 @@ namespace TH16 {
                 break;
             case 4:
                 Close();
-                *mNavFocus = 0;
                 break;
             case 5:
                 if (mSpellId < 106)
@@ -670,7 +660,6 @@ namespace TH16 {
 				if (ImGui::IsItemDeactivatedAfterEdit())
 					SetItemWidthRel(testItemWidth);
 #endif
-            mNavFocus();
         }
 
         unsigned int mSpellId = -1;
@@ -679,8 +668,6 @@ namespace TH16 {
         Gui::GuiSlider<int, ImGuiDataType_S32> mSeasonGauge { TH16_SEASON_GAUGE_ALT, 0, 6 };
         Gui::GuiCheckBox mBugFix { TH16_BUGFIX };
         Gui::GuiCombo mPhase { TH_PHASE };
-
-        Gui::GuiNavFocus mNavFocus { TH16_SUBSEASON, TH16_SEASON_GAUGE_ALT, TH16_BUGFIX, TH_PHASE };
     };
 
     class THAdvOptWnd : public Gui::PPGuiWnd {
@@ -748,33 +735,6 @@ namespace TH16 {
             th16_all_clear_bonus_2.Toggle(mOptCtx.all_clear_bonus);
             th16_all_clear_bonus_3.Toggle(mOptCtx.all_clear_bonus);
         }
-        void DatRecInit()
-        {
-            mOptCtx.data_rec_func = [&](std::vector<RecordedValue>& values) {
-                return DataRecFunc(values);
-            };
-            wchar_t appdata[MAX_PATH];
-            GetEnvironmentVariableW(L"APPDATA", appdata, MAX_PATH);
-            mOptCtx.data_rec_dir = appdata;
-            mOptCtx.data_rec_dir += L"\\ShanghaiAlice\\th16\\replay\\";
-        }
-        void DataRecPreUpd()
-        {
-            DataRecOpt(mOptCtx, true, thPracParam._playLock);
-        }
-        void DataRecFunc(std::vector<RecordedValue>& values)
-        {
-            values.clear();
-            values.emplace_back("Score", (int64_t)*(int32_t*)(0x4a57b0) * 10ll);
-            values.emplace_back("Graze", *(int32_t*)(0x4a57c0));
-            values.emplace_back("Value", ((float)*(int32_t*)(0x4a57d8) / 100.0f), "%.2f");
-        }
-        void DataRecMenu()
-        {
-            if (DataRecOpt(mOptCtx)) {
-                SetContentUpdFunc([&]() { ContentUpdate(); });
-            }
-        }
 
         THAdvOptWnd() noexcept
         {
@@ -785,13 +745,12 @@ namespace TH16 {
 
             InitUpdFunc([&]() { ContentUpdate(); },
                 [&]() { LocaleUpdate(); },
-                [&]() { PreUpdate(); },
+                [&]() { },
                 []() {});
 
             OnLocaleChange();
             FpsInit();
             GameplayInit();
-            DatRecInit();
         }
         SINGLETON(THAdvOptWnd);
 
@@ -854,20 +813,10 @@ namespace TH16 {
                     GameplaySet();
                 EndOptGroup();
             }
-            if (BeginOptGroup<TH_DATANLY>()) {
-                if (ImGui::Button(XSTR(TH_DATANLY_BUTTON))) {
-                    SetContentUpdFunc([&]() { DataRecMenu(); });
-                }
-                EndOptGroup();
-            }
 
             AboutOpt();
             ImGui::EndChild();
             ImGui::SetWindowFocus();
-        }
-        void PreUpdate()
-        {
-            DataRecPreUpd();
         }
 
         adv_opt_ctx mOptCtx;
@@ -2161,18 +2110,6 @@ namespace TH16 {
     {
         ReplaySaveParam(mb_to_utf16(repName).c_str(), thPracParam.GetJson());
     }
-    void THDataInit()
-    {
-        AnlyDataInit();
-
-        DataRef<DATA_SCENE_ID>(U32_ARG(0x4c17c4));
-        DataRef<DATA_RND_SEED>(U16_ARG(0x4a6d88));
-        DataRef<DATA_DIFFCULTY>(U8_ARG(0x4a57b4));
-        DataRef<DATA_SHOT_TYPE>(U8_ARG(0x4a57a4));
-        DataRef<DATA_SUB_SHOT_TYPE>(U8_ARG(0x4a57ac));
-        DataRef<DATA_STAGE>(U8_ARG(0x4a5790));
-        DataRef<DATA_STARTING_STAGE>(U8_ARG(0x4a5794));
-    }
 
     unsigned char th16_spbugfix_ecl1[448] = {
         0x00, 0x00, 0x00, 0x00, 0x2A, 0x00, 0x14, 0x00, 0x01, 0x00, 0xFF, 0x01,
@@ -2555,7 +2492,6 @@ namespace TH16 {
 
         // Hooks
         THMainHook::singleton().EnableAllHooks();
-        THDataInit();
 
         // Reset thPracParam
         thPracParam.Reset();

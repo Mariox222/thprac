@@ -617,7 +617,7 @@ public:
                     mUpdPercentage = 0.0f;
                     mAutoUpdateThread.Start();
                 }
-                ImGui::EndDisabled(disabled);
+                ImGui::EndDisabled();
                 if (mAutoUpdStatus == STATUS_UPD_ABLE_OR_FINISHED) {
                     GuiLauncherMainTrigger(LAUNCHER_CLOSE);
                 }
@@ -649,7 +649,7 @@ public:
             if (GuiCornerButton(XSTR(THPRAC_CLOSE), nullptr, ImVec2(1.0f, 0.0f), true)) {
                 ImGui::CloseCurrentPopup();
             }
-            ImGui::EndDisabled(disabled);
+            ImGui::EndDisabled();
             ImGui::EndPopup();
         }
     }

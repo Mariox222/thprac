@@ -6,7 +6,6 @@
 #include "thprac_launcher_games_def.h"
 #include "thprac_launcher_main.h"
 #include "thprac_launcher_utils.h"
-#include "thprac_launcher_wnd.h"
 #include "thprac_load_exe.h"
 #include "thprac_main.h"
 #include "thprac_utils.h"
@@ -2011,7 +2010,7 @@ public:
             std::string selId = "##__version_";
             selId += game.path;
 
-            if (ImGui::Selectable(selId.c_str(), currentInstIdx == i, ImGuiSelectableFlags_SpanAllColumns, ImVec2(0, 0), false, true)) {
+            if (ImGui::Selectable(selId.c_str(), currentInstIdx == i, ImGuiSelectableFlags_SpanAllColumns, ImVec2(0, 0))) {
                 currentInstIdx = i;
             }
             if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
@@ -2256,7 +2255,7 @@ public:
     {
         bool result = false;
 
-        result = ImGui::Selectable(label, selected, disabled ? ImGuiSelectableFlags_Disabled : 0, ImVec2(0, 0), true);
+        result = ImGui::Selectable(label, selected, disabled ? ImGuiSelectableFlags_Disabled : 0, ImVec2(0, 0));
 
         return result;
     }

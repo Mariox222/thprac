@@ -308,8 +308,6 @@ namespace Alcostg {
 				if (ImGui::IsItemDeactivatedAfterEdit())
 					SetItemWidth(testItemWidth);
 #endif
-
-            mNavFocus();
             if (mModePrv != *mMode) {
                 OnLocaleChange();
                 mModePrv = *mMode;
@@ -331,10 +329,6 @@ namespace Alcostg {
         Gui::GuiSlider<int, ImGuiDataType_S32> mBeer { ALCOSTG_BEER, 0, 30, 1, 10 }; // 3000
         Gui::GuiSlider<int, ImGuiDataType_S32> mBeerMax { ALCOSTG_BEER_MAX, 0, 30, 1, 10 };
         Gui::GuiSlider<int, ImGuiDataType_S32> mProgress { ALCOSTG_PROGRESS, 1, 19, 1, 1 };
-
-        Gui::GuiNavFocus mNavFocus { TH_MODE, TH_STAGE, TH_WARP, ALCOSTG_PROGRESS,
-            TH_MID_STAGE, TH_END_STAGE, TH_NONSPELL, TH_SPELL, TH_PHASE,
-            TH_SCORE, ALCOSTG_TIME, ALCOSTG_BEER, ALCOSTG_BEER_MAX };
 
         int mDiffculty = 0;
     };

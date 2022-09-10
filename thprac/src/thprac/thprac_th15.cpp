@@ -129,7 +129,6 @@ namespace TH15 {
                 break;
             case 4:
                 Close();
-                *mNavFocus = 0;
                 break;
             default:
                 break;
@@ -226,8 +225,6 @@ namespace TH15 {
             //	ImGui::GetWindowPos().y / (float)renderSize.cy);
             //ImGui::Text("Size: %f, %f", ImGui::GetWindowSize().x / (float)renderSize.cx,
             //	ImGui::GetWindowSize().y / (float)renderSize.cy);
-
-            mNavFocus();
         }
         int CalcSection()
         {
@@ -334,11 +331,6 @@ namespace TH15 {
         Gui::GuiSlider<int, ImGuiDataType_S32> mPower { TH_POWER, 100, 400 };
         Gui::GuiDrag<int, ImGuiDataType_S32> mValue { TH_VALUE, 0, 999990, 10, 100000 };
         Gui::GuiDrag<int, ImGuiDataType_S32> mGraze { TH_GRAZE, 0, 999999, 1, 100000 };
-
-        Gui::GuiNavFocus mNavFocus { TH_STAGE, TH_MODE, TH_WARP, TH_DLG,
-            TH_MID_STAGE, TH_END_STAGE, TH_NONSPELL, TH_SPELL, TH_PHASE, TH_CHAPTER,
-            TH_SCORE, TH_LIFE, TH_LIFE_FRAGMENT, TH_BOMB, TH_BOMB_FRAGMENT,
-            TH_POWER, TH_VALUE, TH_GRAZE };
 
         int mChapterSetup[7][2] {
             { 2, 4 },
@@ -564,33 +556,6 @@ namespace TH15 {
             th15_all_clear_bonus_2.Toggle(mOptCtx.all_clear_bonus);
             th15_all_clear_bonus_3.Toggle(mOptCtx.all_clear_bonus);
         }
-        void DatRecInit()
-        {
-            mOptCtx.data_rec_func = [&](std::vector<RecordedValue>& values) {
-                return DataRecFunc(values);
-            };
-            wchar_t appdata[MAX_PATH];
-            GetEnvironmentVariableW(L"APPDATA", appdata, MAX_PATH);
-            mOptCtx.data_rec_dir = appdata;
-            mOptCtx.data_rec_dir += L"\\ShanghaiAlice\\th15\\replay\\";
-        }
-        void DataRecPreUpd()
-        {
-            DataRecOpt(mOptCtx, true, thPracParam._playLock);
-        }
-        void DataRecFunc(std::vector<RecordedValue>& values)
-        {
-            values.clear();
-            values.emplace_back("Score", (int64_t)*(int32_t*)(0x4E740C) * 10ll);
-            values.emplace_back("Graze", *(int32_t*)(0x4E741C));
-            values.emplace_back("Value", ((float)*(int32_t*)(0x4E7434) / 100.0f), "%.2f");
-        }
-        void DataRecMenu()
-        {
-            if (DataRecOpt(mOptCtx)) {
-                SetContentUpdFunc([&]() { ContentUpdate(); });
-            }
-        }
 
         THAdvOptWnd() noexcept
         {
@@ -601,13 +566,12 @@ namespace TH15 {
 
             InitUpdFunc([&]() { ContentUpdate(); },
                 [&]() { LocaleUpdate(); },
-                [&]() { PreUpdate(); },
+                [&]() { },
                 []() {});
 
             OnLocaleChange();
             FpsInit();
             GameplayInit();
-            DatRecInit();
         }
         SINGLETON(THAdvOptWnd);
 
@@ -671,20 +635,10 @@ namespace TH15 {
                     GameplaySet();
                 EndOptGroup();
             }
-            if (BeginOptGroup<TH_DATANLY>()) {
-                if (ImGui::Button(XSTR(TH_DATANLY_BUTTON))) {
-                    SetContentUpdFunc([&]() { DataRecMenu(); });
-                }
-                EndOptGroup();
-            }
 
             AboutOpt();
             ImGui::EndChild();
             ImGui::SetWindowFocus();
-        }
-        void PreUpdate()
-        {
-            DataRecPreUpd();
         }
 
         adv_opt_ctx mOptCtx;
@@ -1789,18 +1743,6 @@ namespace TH15 {
     {
         ReplaySaveParam(mb_to_utf16(repName).c_str(), thPracParam.GetJson());
     }
-    void THDataInit()
-    {
-        AnlyDataInit();
-
-        DataRef<DATA_SCENE_ID>(U32_ARG(0x4e7ecc));
-        DataRef<DATA_RND_SEED>(U16_ARG(0x4e9a48));
-        DataRef<DATA_DIFFCULTY>(U8_ARG(0x4e7410));
-        DataRef<DATA_SHOT_TYPE>(U8_ARG(0x4e7404));
-        //DataRef<DATA_SUB_SHOT_TYPE>(U8_ARG(0x4a57ac));
-        DataRef<DATA_STAGE>(U8_ARG(0x4e73f0));
-        DataRef<DATA_STARTING_STAGE>(U8_ARG(0x4e73f4));
-    }
 
     static bool drawCursor;
     static bool frameStarted = false;
@@ -1939,7 +1881,6 @@ namespace TH15 {
 
         // Hooks
         THMainHook::singleton().EnableAllHooks();
-        THDataInit();
 
         // Reset thPracParam
         thPracParam.Reset();

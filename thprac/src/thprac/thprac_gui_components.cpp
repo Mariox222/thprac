@@ -5,7 +5,6 @@ namespace THPrac
 {
 	namespace Gui
 	{
-		bool GuiNavFocus::mGlobalDisable = false;
         void GameGuiWnd::Update()
             {
                 OnPreUpdate();
@@ -43,7 +42,7 @@ namespace THPrac
                 if (mStatus) {
                     LocalePushFont();
                     for (auto& style : mStyle) {
-                        ImGui::PushStyleVarAlt(style.style, style.value);
+                        ImGui::PushStyleVar(style.style, style.value);
                         styleCount++;
                     }
                     if (mSizeFlag) {
@@ -68,8 +67,7 @@ namespace THPrac
 
                     ImGui::PopItemWidth();
                     ImGui::End();
-                    for (size_t i = 0; i < styleCount; i++)
-                        ImGui::PopStyleVar();
+                    ImGui::PopStyleVar(styleCount);
                     LocalePopFont();
                 }
 
@@ -496,50 +494,6 @@ namespace THPrac
         {
             return (mElapsed.QuadPart * 1000000 / mFreq.QuadPart);
         }
-
-        void GuiNavFocus::operator()()
-        {
-            if (mGlobalDisable)
-                return;
-
-            bool has_active_popup = false;
-            int last_activated_id = 0;
-
-            for (auto id : mNavId) {
-                if (ImGui::IsPopupOpen(XSTR(id)))
-                    has_active_popup = true;
-
-                if (ImGui::IsItemActiveAlt(XSTR(id)))
-                    last_activated_id = id;
-                else if (ImGui::IsItemFocusedAlt(XSTR(id)) && !mForceFocusId)
-                    mFocusId = id;
-            }
-
-            if (!has_active_popup)
-                ImGui::SetWindowFocus();
-
-            if (last_activated_id && !mForceFocusId)
-                mFocusId = last_activated_id;
-
-            bool locale_changed = false;
-            if (mLocale != LocaleGet()) {
-                mLocale = LocaleGet();
-                locale_changed = true;
-            }
-
-            if (mForceFocusId)
-                ImGui::SetItemFocusAlt(XSTR(mForceFocusId), true);
-            else if (mFocusId)
-                ImGui::SetItemFocusAlt(XSTR(mFocusId), locale_changed);
-            else
-                ImGui::SetItemFocusAlt(XSTR(mNavId[0]), locale_changed);
-
-            if (mForceFocusId) {
-                mFocusId = mForceFocusId;
-                mForceFocusId = 0;
-            }
-        }
-
         void MultiComboSelect(std::vector<size_t>& out, const std::vector<const char*> choices, const char* format, size_t level)
         {
             if (out.size() <= level)

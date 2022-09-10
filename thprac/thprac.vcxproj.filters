@@ -35,9 +35,6 @@
     <Filter Include="THPrac Launcher">
       <UniqueIdentifier>{bd74869f-32b5-4bd3-960f-3bcff4aa1638}</UniqueIdentifier>
     </Filter>
-    <Filter Include="THPrac Data Anly">
-      <UniqueIdentifier>{f3231692-550f-4c12-bb63-67d7e5fc13b9}</UniqueIdentifier>
-    </Filter>
     <Filter Include="3rdParties\LZMA">
       <UniqueIdentifier>{3b22df3a-9c7d-4a33-810a-a903dd69008d}</UniqueIdentifier>
     </Filter>
@@ -76,16 +73,10 @@
     <ClInclude Include="src\3rdParties\ImGui\imgui_internal.h">
       <Filter>3rdParties\ImGui</Filter>
     </ClInclude>
-    <ClInclude Include="src\3rdParties\ImGui\imgui_user.h">
-      <Filter>3rdParties\ImGui</Filter>
-    </ClInclude>
     <ClInclude Include="src\3rdParties\ImGui\imstb_rectpack.h">
       <Filter>3rdParties\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="src\3rdParties\ImGui\imstb_textedit.h">
-      <Filter>3rdParties\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="src\3rdParties\ImGui\imstb_truetype.h">
       <Filter>3rdParties\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="src\3rdParties\MinHook\src\buffer.h">
@@ -151,9 +142,6 @@
     <ClInclude Include="src\thprac\thprac_launcher_main.h">
       <Filter>THPrac Launcher</Filter>
     </ClInclude>
-    <ClInclude Include="src\thprac\thprac_launcher_wnd.h">
-      <Filter>THPrac Launcher</Filter>
-    </ClInclude>
     <ClInclude Include="src\thprac\utils\utils.h">
       <Filter>THPrac Utils</Filter>
     </ClInclude>
@@ -183,15 +171,6 @@
     </ClInclude>
     <ClInclude Include="src\thprac\thprac_game_data.h">
       <Filter>THPrac Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="src\3rdParties\ImGui\implot.h">
-      <Filter>3rdParties\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="src\3rdParties\ImGui\implot_internal.h">
-      <Filter>3rdParties\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="src\thprac\thprac_data_anly.h">
-      <Filter>THPrac Data Anly</Filter>
     </ClInclude>
     <ClInclude Include="src\3rdParties\lzma\7zTypes.h">
       <Filter>3rdParties\LZMA</Filter>
@@ -381,9 +360,6 @@
     <ClCompile Include="src\thprac\thprac_launcher_main.cpp">
       <Filter>THPrac Launcher</Filter>
     </ClCompile>
-    <ClCompile Include="src\thprac\thprac_launcher_wnd.cpp">
-      <Filter>THPrac Launcher</Filter>
-    </ClCompile>
     <ClCompile Include="src\thprac\thprac_launcher_cfg.cpp">
       <Filter>THPrac Launcher</Filter>
     </ClCompile>
@@ -416,18 +392,6 @@
     </ClCompile>
     <ClCompile Include="src\thprac\thprac_version.cpp">
       <Filter>THPrac Utils</Filter>
-    </ClCompile>
-    <ClCompile Include="src\3rdParties\ImGui\implot.cpp">
-      <Filter>3rdParties\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="src\3rdParties\ImGui\implot_demo.cpp">
-      <Filter>3rdParties\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="src\3rdParties\ImGui\implot_items.cpp">
-      <Filter>3rdParties\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="src\thprac\thprac_data_anly.cpp">
-      <Filter>THPrac Data Anly</Filter>
     </ClCompile>
     <ClCompile Include="src\3rdParties\lzma\CpuArch.c">
       <Filter>3rdParties\LZMA</Filter>
@@ -481,9 +445,6 @@
   <ItemGroup>
     <None Include="packages.config">
       <Filter>Resource Files</Filter>
-    </None>
-    <None Include="src\3rdParties\ImGui\imgui_user.inl">
-      <Filter>3rdParties\ImGui</Filter>
     </None>
     <None Include="src\thprac\thprac_games_def.json">
       <Filter>THPrac Utils</Filter>

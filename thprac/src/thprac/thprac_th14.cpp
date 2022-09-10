@@ -149,7 +149,6 @@ namespace TH14 {
                 break;
             case 4:
                 Close();
-                *mNavFocus = 0;
                 break;
             default:
                 break;
@@ -228,8 +227,6 @@ namespace TH14 {
                 mScore();
                 mScore.RoundDown(10);
             }
-
-            mNavFocus();
         }
         int CalcSection()
         {
@@ -333,11 +330,6 @@ namespace TH14 {
         Gui::GuiSlider<int, ImGuiDataType_S32> mPower { TH_POWER, 100, 400 };
         Gui::GuiDrag<int, ImGuiDataType_S32> mValue { TH_VALUE, 0, 999990, 10, 100000 };
         Gui::GuiDrag<int, ImGuiDataType_S32> mGraze { TH_GRAZE, 0, 999999, 1, 100000 };
-
-        Gui::GuiNavFocus mNavFocus { TH_STAGE, TH_MODE, TH_WARP, TH_DLG,
-            TH_MID_STAGE, TH_END_STAGE, TH_NONSPELL, TH_SPELL, TH_PHASE, TH_CHAPTER,
-            TH_SCORE, TH_LIFE, TH_LIFE_FRAGMENT, TH_BOMB, TH_BOMB_FRAGMENT, TH14_CYCLE,
-            TH_POWER, TH_VALUE, TH_GRAZE };
 
         int mChapterSetup[7][2] {
             { 3, 2 },
@@ -623,15 +615,12 @@ namespace TH14 {
 				ImGui::Text("Size: %f, %f", ImGui::GetWindowSize().x / (float)renderSize.cx,
 					ImGui::GetWindowSize().y / (float)renderSize.cy);
 #endif
-
-            mNavFocus();
         }
 
         unsigned int mSpellId = -1;
 
         Gui::GuiCheckBox mBugFix { TH16_BUGFIX };
         Gui::GuiCombo mPhase { TH_PHASE };
-        Gui::GuiNavFocus mNavFocus { TH_PHASE };
     };
 
     class THMarisaLaser {
@@ -912,33 +901,6 @@ namespace TH14 {
             th14_all_clear_bonus_2.Toggle(mOptCtx.all_clear_bonus);
             th14_all_clear_bonus_3.Toggle(mOptCtx.all_clear_bonus);
         }
-        void DatRecInit()
-        {
-            mOptCtx.data_rec_func = [&](std::vector<RecordedValue>& values) {
-                return DataRecFunc(values);
-            };
-            wchar_t appdata[MAX_PATH];
-            GetEnvironmentVariableW(L"APPDATA", appdata, MAX_PATH);
-            mOptCtx.data_rec_dir = appdata;
-            mOptCtx.data_rec_dir += L"\\ShanghaiAlice\\th14\\replay\\";
-        }
-        void DataRecPreUpd()
-        {
-            DataRecOpt(mOptCtx, true, thPracParam._playLock);
-        }
-        void DataRecFunc(std::vector<RecordedValue>& values)
-        {
-            values.clear();
-            values.emplace_back("Score", (int64_t) * (int32_t*)(0x4f5830) * 10ll);
-            values.emplace_back("Graze", *(int32_t*)(0x4f5840));
-            values.emplace_back("Value", ((float)*(int32_t*)(0x4f584c) / 100.0f), "%.2f");
-        }
-        void DataRecMenu()
-        {
-            if (DataRecOpt(mOptCtx)) {
-                SetContentUpdFunc([&]() { ContentUpdate(); });
-            }
-        }
 
         void MarisaLaserInit()
         {
@@ -958,7 +920,7 @@ namespace TH14 {
             ImGui::PushItemWidth(GetRelWidth(0.25f));
             if (mLock)
                 ImGui::BeginDisabled();
-            ImGui::ComboSectionsDefault(XSTR(TH14_MODE), &(thMarisaLaser->mState), TH14_MODE_COMBO, XITEMS, "");
+            ImGui::ComboSections(XSTR(TH14_MODE), &(thMarisaLaser->mState), TH14_MODE_COMBO, XITEMS, "");
             if (ImGui::IsPopupOpen(XSTR(TH14_MODE))) {
                 wndFocus = false;
             }
@@ -1041,7 +1003,7 @@ namespace TH14 {
                         else
                             ImGui::PushItemWidth(GetRelWidth(0.27f));
                         sprintf_s(mTempStr, "##%s_%d", XSTR(TH14_CORRECTION_VALUE), i);
-                        ImGui::ComboSectionsDefault(mTempStr, &tempFix, TH14_CORRECTION, XITEMS, "");
+                        ImGui::ComboSections(mTempStr, &tempFix, TH14_CORRECTION, XITEMS, "");
                         if (ImGui::IsPopupOpen(mTempStr)) {
                             wndFocus = false;
                         }
@@ -1219,13 +1181,12 @@ namespace TH14 {
 
             InitUpdFunc([&]() { ContentUpdate(); },
                 [&]() { LocaleUpdate(); },
-                [&]() { PreUpdate(); },
+                [&]() { },
                 []() {});
 
             OnLocaleChange();
             FpsInit();
             GameplayInit();
-            DatRecInit();
             MarisaLaserInit();
         }
         SINGLETON(THAdvOptWnd);
@@ -1324,12 +1285,6 @@ namespace TH14 {
                     GameplaySet();
                 EndOptGroup();
             }
-            if (BeginOptGroup<TH_DATANLY>()) {
-                if (ImGui::Button(XSTR(TH_DATANLY_BUTTON))) {
-                    SetContentUpdFunc([&]() { DataRecMenu(); });
-                }
-                EndOptGroup();
-            }
             if (BeginOptGroup<TH14_MARISA_LASER>()) {
                 wndFocus &= MarisaLaserMenu();
                 EndOptGroup();
@@ -1339,10 +1294,6 @@ namespace TH14 {
             ImGui::EndChild();
             if (wndFocus)
                 ImGui::SetWindowFocus();
-        }
-        void PreUpdate()
-        {
-            DataRecPreUpd();
         }
 
         adv_opt_ctx mOptCtx;
@@ -2348,18 +2299,6 @@ namespace TH14 {
     {
         ReplaySaveParam(mb_to_utf16(repName).c_str(), thPracParam.GetJson());
     }
-    void THDataInit()
-    {
-        AnlyDataInit();
-
-        DataRef<DATA_SCENE_ID>(U32_ARG(0x4d964c));
-        DataRef<DATA_RND_SEED>(U16_ARG(0x4db510));
-        DataRef<DATA_DIFFCULTY>(U8_ARG(0x4f5834));
-        DataRef<DATA_SHOT_TYPE>(U8_ARG(0x4f5828));
-        DataRef<DATA_SUB_SHOT_TYPE>(U8_ARG(0x4f582c));
-        DataRef<DATA_STAGE>(U8_ARG(0x4f58a4));
-        DataRef<DATA_STARTING_STAGE>(U8_ARG(0x4f58a8));
-    }
 
     HOOKSET_DEFINE(THMainHook)
     EHOOK_DY(th14_everlasting_bgm, 0x46ef90)
@@ -2531,7 +2470,6 @@ namespace TH14 {
 
         // Hooks
         THMainHook::singleton().EnableAllHooks();
-        THDataInit();
 
         // Reset thPracParam
         thPracParam.Reset();

@@ -177,7 +177,6 @@ namespace TH07 {
                 break;
             case 4:
                 Close();
-                *mNavFocus = 0;
                 break;
             default:
                 break;
@@ -257,8 +256,6 @@ namespace TH07 {
                 else
                     mRank.SetBound(10, *mRankLock ? 99 : 32);
             }
-
-            mNavFocus();
         }
 
         int CalcSection()
@@ -374,11 +371,6 @@ namespace TH07 {
         Gui::GuiSlider<int, ImGuiDataType_S32> mSpellBonus { TH07_SPELLBONUS, 0, 30 };
         Gui::GuiSlider<int, ImGuiDataType_S32> mRank { TH_BULLET_RANK, 10, 32, 1, 10, 10 };
         Gui::GuiCheckBox mRankLock { TH_BULLET_RANKLOCK };
-
-        Gui::GuiNavFocus mNavFocus { TH_STAGE, TH_MODE, TH_WARP, TH_FRAME,
-            TH_MID_STAGE, TH_END_STAGE, TH_NONSPELL, TH_SPELL, TH_PHASE, TH_CHAPTER,
-            TH_LIFE, TH_BOMB, TH_SCORE, TH_POWER, TH_GRAZE, TH_POINT, TH_POINT_TOTAL, TH_POINT_STAGE,
-            TH07_CHERRY, TH07_CHERRYMAX, TH07_CHERRYPLUS, TH07_SPELLBONUS, TH_BULLET_RANK, TH_BULLET_RANKLOCK };
 
         int mChapterSetup[8][2] {
             { 2, 1 },
@@ -592,47 +584,6 @@ namespace TH07 {
             th07_all_clear_bonus_1.Toggle(mOptCtx.all_clear_bonus);
             th07_all_clear_bonus_2.Toggle(mOptCtx.all_clear_bonus);
         }
-        void DatRecInit()
-        {
-            mOptCtx.data_rec_func = [&](std::vector<RecordedValue>& values) {
-                return DataRecFunc(values);
-            };
-            wchar_t tempStr[MAX_PATH];
-            GetCurrentDirectoryW(MAX_PATH, tempStr);
-            mOptCtx.data_rec_dir = tempStr;
-            mOptCtx.data_rec_dir += L"\\replay";
-        }
-        void DataRecPreUpd()
-        {
-            DataRecOpt(mOptCtx, true, thPracParam._playLock);
-        }
-        void DataRecFunc(std::vector<RecordedValue>& values)
-        {
-            // 4b802d
-            int32_t* score1 = (int32_t*)GetMemAddr(0x626278, 0x0);
-            int32_t* score2 = (int32_t*)GetMemAddr(0x626278, 0x4);
-            int32_t* graze1 = (int32_t*)GetMemAddr(0x626278, 0x14);
-            int32_t* graze2 = (int32_t*)GetMemAddr(0x626278, 0x18);
-            int32_t* cherry = (int32_t*)0x62f88c;
-            int32_t* cherryMax = (int32_t*)0x62f888;
-            int32_t* cherryPlus = (int32_t*)0x62f890;
-            int32_t cherryBase = (int32_t)GetMemContent(0x626278, 0x88);
-            int32_t* point_total = (int32_t*)GetMemAddr(0x626278, 0x28);
-            values.clear();
-            values.emplace_back("Score", (int64_t)*score2 * 10ll);
-            values.emplace_back("Graze", *graze2);
-            values.emplace_back("Point", *point_total);
-            values.emplace_back("Cherry", *cherry - cherryBase);
-            values.emplace_back("Cherry Max", *cherryMax - cherryBase);
-            values.emplace_back("C+", *cherryPlus - cherryBase);
-        }
-        void DataRecMenu()
-        {
-            *((int32_t*)0x575ab4) = 2;
-            if (DataRecOpt(mOptCtx)) {
-                SetContentUpdFunc([&]() { ContentUpdate(); });
-            }
-        }
 
         THAdvOptWnd() noexcept
         {
@@ -643,13 +594,12 @@ namespace TH07 {
 
             InitUpdFunc([&]() { ContentUpdate(); },
                 [&]() { LocaleUpdate(); },
-                [&]() { PreUpdate(); },
+                [&]() {},
                 []() {});
 
             OnLocaleChange();
             FpsInit();
             GameplayInit();
-            DatRecInit();
         }
         SINGLETON(THAdvOptWnd);
 
@@ -713,20 +663,10 @@ namespace TH07 {
                     GameplaySet();
                 EndOptGroup();
             }
-            if (BeginOptGroup<TH_DATANLY>()) {
-                if (ImGui::Button(XSTR(TH_DATANLY_BUTTON))) {
-                    SetContentUpdFunc([&]() { DataRecMenu(); });
-                }
-                EndOptGroup();
-            }
 
             AboutOpt();
             ImGui::EndChild();
             ImGui::SetWindowFocus();
-        }
-        void PreUpdate()
-        {
-            DataRecPreUpd();
         }
 
         adv_opt_ctx mOptCtx;
@@ -1711,17 +1651,6 @@ namespace TH07 {
     {
         ReplaySaveParam(mb_to_utf16(rep_name).c_str(), thPracParam.GetJson());
     }
-    void THDataInit()
-    {
-        AnlyDataInit();
-
-        DataRef<DATA_SCENE_ID>(U32_ARG(0x575aa8));
-        DataRef<DATA_RND_SEED>(U16_ARG(0x49fe20));
-        DataRef<DATA_DIFFCULTY>(U8_ARG(0x575a89));
-        DataRef<DATA_SHOT_TYPE>(U8_ARG(0x62f645));
-        DataRef<DATA_SUB_SHOT_TYPE>(U8_ARG(0x62f646));
-        DataRef<DATA_STAGE>(U8_ARG(0x62f85c));
-    }
 
     HOOKSET_DEFINE(THMainHook)
     PATCH_DY(th07_reacquire_input, 0x430f03, "\x00\x00\x00\x00\x74", 5);
@@ -1930,7 +1859,6 @@ namespace TH07 {
 
         // Hooks
         THMainHook::singleton().EnableAllHooks();
-        THDataInit();
 
         // Reset thPracParam
         thPracParam.Reset();

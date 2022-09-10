@@ -1,6 +1,6 @@
 ﻿#include "thprac_launcher_cfg.h"
+#include "thprac_launcher_main.h"
 #include "thprac_launcher_utils.h"
-#include "thprac_launcher_wnd.h"
 #include "thprac_gui_locale.h"
 #include "thprac_utils.h"
 #include "utils/utils.h"
@@ -521,7 +521,7 @@ private:
             GuiCenteredText(XSTR(THPRAC_GAMES_MISSING));
             return;
         }
-        ImGui::Columns(2, "##@__col_links", true, true);
+        ImGui::Columns(2, "##@__col_links", true);
 
         int i = 0;
         for (auto& node : mLinks) {

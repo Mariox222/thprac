@@ -234,7 +234,14 @@ namespace Gui {
                 vtx_dst->pos[0] = vtx_src->pos.x;
                 vtx_dst->pos[1] = vtx_src->pos.y;
                 vtx_dst->pos[2] = 0.0f;
-                vtx_dst->col = vtx_src->col;
+
+                DWORD _col = 0;
+                _col |= vtx_src->col & 0xFF000000;
+                _col |= (vtx_src->col & 0x00FF0000) >> 16;
+                _col |= vtx_src->col & 0x0000FF00;
+                _col |= (vtx_src->col & 0x000000FF) << 16;
+
+                vtx_dst->col = _col;
                 //vtx_dst->col = (vtx_src->col & 0xFF00FF00) | ((vtx_src->col & 0xFF0000) >> 16) | ((vtx_src->col & 0xFF) << 16);     // RGBA --> ARGB for DirectX9
                 vtx_dst->uv[0] = vtx_src->uv.x;
                 vtx_dst->uv[1] = vtx_src->uv.y;

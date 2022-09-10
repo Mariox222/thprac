@@ -1,5 +1,4 @@
 ﻿#include "thprac_utils.h"
-#include "../3rdParties/d3d8/include/d3d8.h"
 
 namespace THPrac {
 
@@ -229,7 +228,6 @@ namespace TH06 {
             case 3:
                 SetFade(0.8f, 0.8f);
                 Close();
-                *mNavFocus = 0;
 
                 // Fill Param
                 thPracParam.mode = *mMode;
@@ -255,7 +253,6 @@ namespace TH06 {
                 break;
             case 4:
                 Close();
-                *mNavFocus = 0;
                 break;
             case 5:
                 // Fill Param
@@ -292,7 +289,7 @@ namespace TH06 {
                 mPhase(TH_PHASE, TH_SPELL_PHASE1);
             }
         }
-        void PracticeMenu(Gui::GuiNavFocus& nav_focus)
+        void PracticeMenu()
         {
             mMode();
             if (mStage())
@@ -326,8 +323,6 @@ namespace TH06 {
                         mRank.SetBound(0, 32);
                 }
             }
-
-            nav_focus();
         }
 
     protected:
@@ -359,7 +354,7 @@ namespace TH06 {
             ImGui::TextUnformatted(XSTR(TH_MENU));
             ImGui::Separator();
 
-            PracticeMenu(mNavFocus);
+            PracticeMenu();
         }
         int CalcSection()
         {
@@ -473,11 +468,6 @@ namespace TH06 {
         Gui::GuiCheckBox mRankLock { TH06_RANKLOCK };
         Gui::GuiCombo mFakeShot { TH06_FS, TH06_TYPE_SELECT };
 
-        Gui::GuiNavFocus mNavFocus { TH_STAGE, TH_MODE, TH_WARP, TH_FRAME,
-            TH_MID_STAGE, TH_END_STAGE, TH_NONSPELL, TH_SPELL, TH_PHASE, TH_CHAPTER,
-            TH_LIFE, TH_BOMB, TH_SCORE, TH_POWER, TH_GRAZE, TH_POINT,
-            TH06_RANK, TH06_RANKLOCK, TH06_FS };
-
         int mChapterSetup[7][2] {
             { 4, 2 },
             { 2, 2 },
@@ -550,7 +540,6 @@ namespace TH06 {
             }
 
             if (mFrameCounter == 1) {
-                *mNavFocus = 0;
                 inSettings = false;
 
                 auto oldMode = thPracParam.mode;
@@ -578,7 +567,6 @@ namespace TH06 {
             }
 
             if (mFrameCounter == 1) {
-                *mNavFocus = 0;
                 inSettings = false;
                 Close();
             } else if (mFrameCounter == 10) {
@@ -596,7 +584,6 @@ namespace TH06 {
             }
 
             if (mFrameCounter == 1) {
-                *mNavFocus = 0;
                 inSettings = false;
                 Close();
             } else if (mFrameCounter == 10) {
@@ -683,7 +670,6 @@ namespace TH06 {
                     inSettings = !inSettings;
                 ImGui::Spacing();
                 ImGui::Unindent();
-                mNavFocus();
             } else {
                 ImGui::Dummy(ImVec2(10.0f, 10.0f));
                 ImGui::Indent(119.0f);
@@ -700,7 +686,7 @@ namespace TH06 {
                     inSettings = !inSettings;
                 ImGui::Spacing();
                 ImGui::Unindent(67.0f);
-                THGuiPrac::singleton().PracticeMenu(mNavFocus);
+                THGuiPrac::singleton().PracticeMenu();
             }
 
             //if (Gui::KeyboardInputGetSingle(VK_ESCAPE))
@@ -720,12 +706,6 @@ namespace TH06 {
         Gui::GuiButton mExit { TH_EXIT, 130.0f, 25.0f };
         Gui::GuiButton mRestart { TH_RESTART, 130.0f, 25.0f };
         Gui::GuiButton mSettings { TH_TWEAK, 130.0f, 25.0f };
-
-        Gui::GuiNavFocus mNavFocus { TH_RESUME, TH_EXIT, TH_RESTART, TH_TWEAK,
-            TH_STAGE, TH_MODE, TH_WARP,
-            TH_MID_STAGE, TH_END_STAGE, TH_NONSPELL, TH_SPELL, TH_PHASE,
-            TH_LIFE, TH_BOMB, TH_SCORE, TH_POWER, TH_GRAZE, TH_POINT,
-            TH06_RANK, TH06_RANKLOCK, TH06_FS };
     };
     class THGuiRep : public Gui::GameGuiWnd {
         THGuiRep() noexcept
@@ -818,34 +798,6 @@ namespace TH06 {
         void GameplaySet()
         {
         }
-        void DatRecInit()
-        {
-            mOptCtx.data_rec_func = [&](std::vector<RecordedValue>& values) {
-                return DataRecFunc(values);
-            };
-            wchar_t tempStr[MAX_PATH];
-            GetCurrentDirectoryW(MAX_PATH, tempStr);
-            mOptCtx.data_rec_dir = tempStr;
-            mOptCtx.data_rec_dir += L"\\replay";
-        }
-        void DataRecPreUpd()
-        {
-            DataRecOpt(mOptCtx, true, thPracParam._playLock);
-        }
-        void DataRecFunc(std::vector<RecordedValue>& values)
-        {
-            values.clear();
-            values.emplace_back("Score", *(int32_t*)(0x69bca4));
-            values.emplace_back("Graze", *(int32_t*)(0x69bcb4));
-            values.emplace_back("Point", *(int16_t*)(0x69d4b4));
-        }
-        void DataRecMenu()
-        {
-            *((int32_t*)0x6c6eb0) = 3;
-            if (DataRecOpt(mOptCtx)) {
-                SetContentUpdFunc([&]() { ContentUpdate(); });
-            }
-        }
 
         THAdvOptWnd() noexcept
         {
@@ -856,13 +808,12 @@ namespace TH06 {
 
             InitUpdFunc([&]() { ContentUpdate(); },
                 [&]() { LocaleUpdate(); },
-                [&]() { PreUpdate(); },
+                [&]() {},
                 []() {});
 
             OnLocaleChange();
             FpsInit();
             GameplayInit();
-            DatRecInit();
         }
         SINGLETON(THAdvOptWnd);
 
@@ -921,25 +872,12 @@ namespace TH06 {
                     FpsSet();
                 EndOptGroup();
             }
-            if (BeginOptGroup<TH_DATANLY>()) {
-                if (ImGui::Button(XSTR(TH_DATANLY_BUTTON))) {
-                    SetContentUpdFunc([&]() { DataRecMenu(); });
-                }
-                EndOptGroup();
-            }
 
             AboutOpt();
             ImGui::EndChild();
             ImGui::SetWindowFocus();
         }
-        void PreUpdate()
-        {
-            DataRecPreUpd();
-        }
-
-        adv_opt_ctx mOptCtx;
-
-        
+        adv_opt_ctx mOptCtx;       
     };
 
     // ECL Patch Helper
